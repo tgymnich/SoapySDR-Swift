@@ -10,5 +10,6 @@
 
 #include <SoapySDR/Device.h>
 #include <SoapySDR/Modules.h>
+#include <SoapySDR/Logger.h>
 
 #endif /* Header_h */
