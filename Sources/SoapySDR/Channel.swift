@@ -39,7 +39,6 @@ public struct Channel {
   }
   
   /// Get the frontend frequency correction value.
-  @available(macOS 10.12, *)
   public var frequencyCorrection: Measurement<UnitDispersion> {
     let correction = SoapySDRDevice_getFrequencyCorrection(device.impl, direction.rawValue, index)
     return Measurement(value: correction, unit: .partsPerMillion)
@@ -77,7 +76,8 @@ public struct Channel {
     return Array(buffer)
   }
     
-  /// MARK: Channel Settings API
+  
+  // MARK: Channel Settings API
   
   /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
   public func writeChannelSetting(channel: Int, key: String, value: String) throws {
@@ -89,7 +89,8 @@ public struct Channel {
     return String(cString: SoapySDRDevice_readChannelSetting(device.impl, direction.rawValue, channel, key))
   }
   
-  /// MARK: Gain API
+  
+  // MARK: Gain API
 
   /// List available amplification elements. Elements should be in order RF to baseband.
   public var gains: [String] {
@@ -116,11 +117,10 @@ public struct Channel {
     return stride(from: range.minimum, through: range.maximum, by: range.step)
   }
   
+  
   // MARK: Frequency API
   
   /// Set the center frequency of the chain. - For RX, this specifies the down-conversion frequency. - For TX, this specifies the up-conversion frequency.
-  @available(iOS 10.0, *)
-  @available(macOS 10.12, *)
   public func setFrequency(frequency: Measurement<UnitFrequency>) throws {
     var args = SoapySDRKwargs()
     try cTry { SoapySDRDevice_setFrequency(device.impl, direction.rawValue, index, frequency.converted(to: .hertz).value, &args) }
@@ -135,7 +135,7 @@ public struct Channel {
   }
   
   /// Get the range of tunable values for the specified element.
-  func getFrequencyRangeComponent(name: String) -> [StrideThrough<Double>] {
+  public func getFrequencyRangeComponent(name: String) -> [StrideThrough<Double>] {
     var length = 0
     let pointer = SoapySDRDevice_getFrequencyRangeComponent(device.impl, direction.rawValue, index, name, &length)
     let buffer = UnsafeBufferPointer(start: pointer, count: length)
@@ -143,8 +143,7 @@ public struct Channel {
   }
   
   /// Get the range of tunable values for the specified element.
-  @available(macOS 10.12, *)
-  func getFrequencyRangeComponent(name: String) -> [StrideThrough<Measurement<UnitFrequency>>] {
+  public func getFrequencyRangeComponent(name: String) -> [StrideThrough<Measurement<UnitFrequency>>] {
     var length = 0
     let pointer = SoapySDRDevice_getFrequencyRangeComponent(device.impl, direction.rawValue, index, name, &length)
     let buffer = UnsafeBufferPointer(start: pointer, count: length)
@@ -165,7 +164,6 @@ public struct Channel {
   }
   
   /// Get the range of possible baseband sample rates.
-  @available(macOS 10.12, *)
   public var sampleRates: [Measurement<UnitFrequency>] {
     var length = 0
     let pointer = SoapySDRDevice_listSampleRates(device.impl, direction.rawValue, index, &length)
@@ -182,31 +180,68 @@ public struct Channel {
   }
   
   /// Get the overall center frequency of the chain. - For RX, this specifies the down-conversion frequency. - For TX, this specifies the up-conversion frequency.
-  @available(macOS 10.12, *)
   public var frequency: Measurement<UnitFrequency> {
     let frequency = SoapySDRDevice_getFrequency(device.impl, direction.rawValue, index)
     return Measurement(value: frequency, unit: .hertz)
   }
   
   /// Get the baseband filter width of the chain
-  @available(macOS 10.12, *)
   public var bandwidth: Measurement<UnitFrequency> {
     let bandwidth = SoapySDRDevice_getBandwidth(device.impl, direction.rawValue, index)
     return Measurement(value: bandwidth, unit: .hertz)
   }
   
   /// Get the frequency of a tunable element in the chain.
-  @available(macOS 10.12, *)
-  func getFrequencyComponent(name: String) -> Measurement<UnitFrequency> {
+  public func getFrequencyComponent(name: String) -> Measurement<UnitFrequency> {
     let frequency = SoapySDRDevice_getFrequencyComponent(device.impl, direction.rawValue, index, name)
     return Measurement(value: frequency, unit: .hertz)
   }
   
-  @available(macOS 10.12, *)
-  func setFrequencyComponent(name: String, frequency: Measurement<UnitFrequency>) throws {
+  public func setFrequencyComponent(name: String, frequency: Measurement<UnitFrequency>) throws {
     var args = SoapySDRKwargs()
-    try cTry { SoapySDRDevice_setFrequencyComponent(device.impl, direction.rawValue, index, name, frequency.converted(to: .hertz).value, &args) }
+    let frequency = frequency.converted(to: .hertz).value
+    try cTry { SoapySDRDevice_setFrequencyComponent(device.impl, direction.rawValue, index, name, frequency, &args) }
   }
+  
+  
+  // MARK: Sensor API
+  
+  /// List the available channel readback sensors. A sensor can represent a reference lock, RSSI, temperature.
+  public var sensors: [String] {
+    var length = 0
+    let pointer = SoapySDRDevice_listChannelSensors(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.compactMap{ $0 }.map{ String(cString: $0) }
+  }
+  
+  private func getSensorInfo(key: String) -> SoapySDRArgInfo {
+    return SoapySDRDevice_getChannelSensorInfo(device.impl, direction.rawValue, index, key)
+  }
+  
+  /// Readback a channel sensor given the name.
+  /// The value returned is a string which can represent a boolean ("true"/"false"), an integer, or float.
+  private func readSensor(key: String) -> String {
+    return String(cString: SoapySDRDevice_readChannelSensor(device.impl, direction.rawValue, index, key))
+  }
+  
+  /// Readback a channel sensor given the name.
+  /// The value returned is a string which can represent a boolean ("true"/"false"), an integer, or float.
+  public func readSensor(key: String) -> Bool? {
+    return Bool(readSensor(key: key))
+  }
+  
+  /// Readback a channel sensor given the name.
+  /// The value returned is a string which can represent a boolean ("true"/"false"), an integer, or float.
+  public func readSensor(key: String) -> Int? {
+    return Int(readSensor(key: key))
+  }
+  
+  /// Readback a channel sensor given the name.
+  /// The value returned is a string which can represent a boolean ("true"/"false"), an integer, or float.
+  public func readSensor(key: String) -> Double? {
+    return Double(readSensor(key: key))
+  }
+  
   
   // MARK: Antenna API
   
@@ -222,7 +257,7 @@ public struct Channel {
   public var antennaName: String { String(cString: SoapySDRDevice_getAntenna(device.impl, direction.rawValue, index)) }
   
   /// Set the selected antenna on a chain.
-  public func setAntenna(name: String) throws {
+  public func setAntennaName(name: String) throws {
     try cTry { SoapySDRDevice_setAntenna(device.impl, direction.rawValue, index, name) }
   }
   

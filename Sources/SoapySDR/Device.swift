@@ -23,8 +23,9 @@ public class Device {
   }
   
   let impl: OpaquePointer
-  lazy var rx: Stream? = nil
-  lazy var tx: Stream? = nil
+  
+  public lazy var rx: Stream? = nil
+  public lazy var tx: Stream? = nil
   
   /// A key that uniquely identifies the device driver.
   /// This key identifies the underlying implementation. Several variants of a product may share a driver.
@@ -55,7 +56,7 @@ public class Device {
   // MARK: Time API
   
   /// Get the list of available time sources
-  var timeSources: [String] {
+  public var timeSources: [String] {
     var length = 0
     let pointer = SoapySDRDevice_listTimeSources(impl, &length)
     let buffer = UnsafeBufferPointer(start: pointer, count: length)
@@ -63,47 +64,45 @@ public class Device {
   }
   
   /// Set the time source on the device
-  func setTimeSource(source: String) throws {
+  public func setTimeSource(source: String) throws {
     try cTry { SoapySDRDevice_setTimeSource(impl, source) }
   }
   
   /// Get the time source of the device
-  var timeSource: String { String(cString: SoapySDRDevice_getTimeSource(impl)) }
+  public var timeSource: String { String(cString: SoapySDRDevice_getTimeSource(impl)) }
   
   /// Does this device have a hardware clock?
-  func hasHardwareTime(counter: String? = nil) -> Bool {
+  public func hasHardwareTime(counter: String? = nil) -> Bool {
     return SoapySDRDevice_hasHardwareTime(impl, counter)
   }
   
   /// Read the time from the hardware clock on the device. The what argument can refer to a specific time counter.
-  func getHardwareTime(counter: String? = nil) -> Int64 {
+  public func getHardwareTime(counter: String? = nil) -> Int64 {
     return SoapySDRDevice_getHardwareTime(impl, counter)
   }
   
   /// Write the time to the hardware clock on the device.
   /// The what argument can refer to a specific time counter.
-  func setHardwareTime(_ time: Int64, counter: String? = nil) {
+  public func setHardwareTime(_ time: Int64, counter: String? = nil) {
     SoapySDRDevice_setHardwareTime(impl, time, counter)
   }
+  
   
   // MARK: Clocking API
   
   /// Set the master clock rate of the device.
-  @available(macOS 10.12, *)
-  func setMasterClockRate(rate: Measurement<UnitFrequency>) throws {
+  public func setMasterClockRate(rate: Measurement<UnitFrequency>) throws {
     try cTry { SoapySDRDevice_setMasterClockRate(impl, rate.converted(to: .hertz).value) }
   }
   
   /// Get the master clock rate of the device.
-  @available(macOS 10.12, *)
-  var masterClockRate: Measurement<UnitFrequency> {
+  public var masterClockRate: Measurement<UnitFrequency> {
     let frequency = SoapySDRDevice_getMasterClockRate(impl)
     return Measurement(value: frequency, unit: .hertz)
   }
   
   /// Get the range of available master clock rates.
-  @available(macOS 10.12, *)
-  var masterClockRates: [StrideThrough<Measurement<UnitFrequency>>] {
+  public var masterClockRates: [StrideThrough<Measurement<UnitFrequency>>] {
     var length = 0
     let pointer = SoapySDRDevice_getMasterClockRates(impl, &length)
     let buffer = UnsafeBufferPointer(start: pointer, count: length)
@@ -116,19 +115,18 @@ public class Device {
   }
   
   /// Set the reference clock rate of the device.
-  @available(macOS 10.12, *)
-  func setReferenceClockRate(rate: Measurement<UnitFrequency>) throws {
+  public func setReferenceClockRate(rate: Measurement<UnitFrequency>) throws {
     try cTry { SoapySDRDevice_setReferenceClockRate(impl, rate.converted(to: .hertz).value) }
   }
   
-  @available(macOS 10.12, *)
-  var referenceClockRate: Measurement<UnitFrequency> {
+  /// Get the reference clock rate of the device.
+  public var referenceClockRate: Measurement<UnitFrequency> {
     let frequency = SoapySDRDevice_getReferenceClockRate(impl)
     return Measurement(value: frequency, unit: .hertz)
   }
   
-  @available(macOS 10.12, *)
-  var referenceClockRates: [StrideThrough<Measurement<UnitFrequency>>] {
+  /// Get the range of available reference clock rates.
+  public var referenceClockRates: [StrideThrough<Measurement<UnitFrequency>>] {
     var length = 0
     let pointer = SoapySDRDevice_getReferenceClockRates(impl, &length)
     let buffer = UnsafeBufferPointer(start: pointer, count: length)
@@ -140,18 +138,21 @@ public class Device {
     }
   }
   
-  var clockSources: [String] {
+  /// Get the list of available clock sources.
+  public var clockSources: [String] {
     var length = 0
     let pointer = SoapySDRDevice_listClockSources(impl, &length)
     let buffer = UnsafeBufferPointer(start: pointer, count: length)
     return buffer.compactMap{ $0 }.map{ String(cString: $0) }
   }
   
-  func setClockSource(source: String) throws {
+  /// Set the clock source on the device
+  public func setClockSource(source: String) throws {
     try cTry { SoapySDRDevice_setClockSource(impl, source) }
   }
   
-  var clockSourc: String { String(cString: SoapySDRDevice_getClockSource(impl)) }
+  /// Get the clock source of the device
+  public var clockSourc: String { String(cString: SoapySDRDevice_getClockSource(impl)) }
   
   deinit {
     SoapySDRDevice_unmake(impl)
