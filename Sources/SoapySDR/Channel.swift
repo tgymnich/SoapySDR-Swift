@@ -1,0 +1,232 @@
+//
+//  Channel.swift
+//  
+//
+//  Created by Tim Gymnich on 05.12.21.
+//
+
+import Foundation
+@_implementationOnly import CSoapySDR
+
+public struct Channel {
+  public let device: Device
+  public let direction: Direction
+  public let index: Int
+    
+  /// Get the mapping configuration string.
+  public var frontendMapping: String { String(cString: SoapySDRDevice_getFrontendMapping(device.impl, direction.rawValue)) }
+  
+  /// Get channel info given the streaming direction
+  private var info: SoapySDRKwargs { SoapySDRDevice_getChannelInfo(device.impl, direction.rawValue, index) }
+  
+  /// Find out if the specified channel is full or half duplex.
+  public var fullDuplex: Bool { SoapySDRDevice_getFullDuplex(device.impl, direction.rawValue, index) }
+  
+  public var hasAutomaticGainControl: Bool { SoapySDRDevice_hasGainMode(device.impl, direction.rawValue, index) }
+  
+  public var automaticGainControlEnabled: Bool { SoapySDRDevice_getGainMode(device.impl, direction.rawValue, index) }
+  
+  public var hasAutomaticDCOffsetCorrection: Bool { SoapySDRDevice_hasDCOffsetMode(device.impl, direction.rawValue, index) }
+  
+  public var automaticDCOffsetCorrectionEnabled: Bool { SoapySDRDevice_getDCOffsetMode(device.impl, direction.rawValue, index) }
+  
+  public var hasIQBalanceCorrection: Bool { SoapySDRDevice_hasIQBalance(device.impl, direction.rawValue, index) }
+  
+  public var iQBalance: (I: Double, Q: Double) {
+    var balance = (I: 0.0, Q: 0.0)
+    SoapySDRDevice_getIQBalance(device.impl, direction.rawValue, index, &balance.I, &balance.Q)
+    return balance
+  }
+  
+  /// Get the frontend frequency correction value.
+  @available(macOS 10.12, *)
+  public var frequencyCorrection: Measurement<UnitDispersion> {
+    let correction = SoapySDRDevice_getFrequencyCorrection(device.impl, direction.rawValue, index)
+    return Measurement(value: correction, unit: .partsPerMillion)
+  }
+    
+  /// Describe the allowed keys and values used for channel settings.
+  private var channelSettingInfo: [SoapySDRArgInfo] {
+    var length = 0
+    let pointer = SoapySDRDevice_getChannelSettingInfo(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return Array(buffer)
+  }
+  
+  /// Query a list of the available stream formats.
+  public var streamFormats: [String] {
+    var length = 0
+    let pointer = SoapySDRDevice_getStreamFormats(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.compactMap{ $0 }.map { String(cString: $0) }
+  }
+  
+  /// Get the hardware's native stream format for this channel.
+  /// This is the format used by the underlying transport layer, and the direct buffer access API calls (when available).
+  public var nativeStreamFormat: (format: String, fullScale: Double) {
+    var fullScale = 0.0
+    let format = String(cString: SoapySDRDevice_getNativeStreamFormat(device.impl, direction.rawValue, index, &fullScale))
+    return (format,fullScale)
+  }
+  
+  /// Query the argument info description for stream args.
+  private var streamArgsInfo: [SoapySDRArgInfo] {
+    var length = 0
+    let ptr = SoapySDRDevice_getStreamArgsInfo(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: ptr, count: length)
+    return Array(buffer)
+  }
+    
+  /// MARK: Channel Settings API
+  
+  /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
+  public func writeChannelSetting(channel: Int, key: String, value: String) throws {
+    try cTry { SoapySDRDevice_writeChannelSetting(device.impl, direction.rawValue, channel, key, value) }
+  }
+  
+  /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
+  public func readChannelSetting(channel: Int, key: String) -> String {
+    return String(cString: SoapySDRDevice_readChannelSetting(device.impl, direction.rawValue, channel, key))
+  }
+  
+  /// MARK: Gain API
+
+  /// List available amplification elements. Elements should be in order RF to baseband.
+  public var gains: [String] {
+    var length: Int = 0
+    let pointer = SoapySDRDevice_listGains(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.compactMap{ $0 }.map { String(cString: $0) }
+  }
+    
+  /// Get the value of an individual amplification element in a chain.
+  public func getGainElement(name: String) -> Double {
+    return SoapySDRDevice_getGainElement(device.impl, direction.rawValue, index, name)
+  }
+  
+  /// Get the overall range of possible gain values.
+  public var gainRange: StrideThrough<Double> {
+    let range = SoapySDRDevice_getGainRange(device.impl, direction.rawValue, index)
+    return stride(from: range.minimum, through: range.maximum, by: range.step)
+  }
+  
+  /// Get the range of possible gain values for a specific element.
+  public func getGainElementRange(name: String) -> StrideThrough<Double> {
+    let range = SoapySDRDevice_getGainElementRange(device.impl, direction.rawValue, index, name)
+    return stride(from: range.minimum, through: range.maximum, by: range.step)
+  }
+  
+  // MARK: Frequency API
+  
+  /// Set the center frequency of the chain. - For RX, this specifies the down-conversion frequency. - For TX, this specifies the up-conversion frequency.
+  @available(iOS 10.0, *)
+  @available(macOS 10.12, *)
+  public func setFrequency(frequency: Measurement<UnitFrequency>) throws {
+    var args = SoapySDRKwargs()
+    try cTry { SoapySDRDevice_setFrequency(device.impl, direction.rawValue, index, frequency.converted(to: .hertz).value, &args) }
+  }
+    
+  /// Get the range of overall frequency values.
+  public var frequencyRange: [StrideThrough<Double>] {
+    var length = 0
+    let pointer = SoapySDRDevice_getFrequencyRange(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.map { stride(from: $0.minimum, through: $0.maximum, by: $0.step) }
+  }
+  
+  /// Get the range of tunable values for the specified element.
+  func getFrequencyRangeComponent(name: String) -> [StrideThrough<Double>] {
+    var length = 0
+    let pointer = SoapySDRDevice_getFrequencyRangeComponent(device.impl, direction.rawValue, index, name, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.map { stride(from: $0.minimum, through: $0.maximum, by: $0.step) }
+  }
+  
+  /// Get the range of tunable values for the specified element.
+  @available(macOS 10.12, *)
+  func getFrequencyRangeComponent(name: String) -> [StrideThrough<Measurement<UnitFrequency>>] {
+    var length = 0
+    let pointer = SoapySDRDevice_getFrequencyRangeComponent(device.impl, direction.rawValue, index, name, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.map {
+      stride(
+        from: Measurement(value: $0.minimum, unit: .hertz),
+        through: Measurement(value: $0.maximum, unit: .hertz),
+        by: $0.step)
+    }
+  }
+  
+  /// Get the range of possible baseband sample rates.
+  public var sampleRateRange: [StrideThrough<Double>] {
+    var length = 0
+    let pointer = SoapySDRDevice_getSampleRateRange(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.map { stride( from: $0.minimum, through: $0.maximum, by: $0.step) }
+  }
+  
+  /// Get the range of possible baseband sample rates.
+  @available(macOS 10.12, *)
+  public var sampleRates: [Measurement<UnitFrequency>] {
+    var length = 0
+    let pointer = SoapySDRDevice_listSampleRates(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return buffer.map { Measurement(value: $0, unit: .hertz) }
+  }
+  
+  /// List available tunable elements in the chain. Elements should be in order RF to baseband.
+  public var frequencies: [String] {
+    var length = 0
+    let pointer = SoapySDRDevice_listFrequencies(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return  buffer.compactMap{ $0 }.map { String(cString: $0) }
+  }
+  
+  /// Get the overall center frequency of the chain. - For RX, this specifies the down-conversion frequency. - For TX, this specifies the up-conversion frequency.
+  @available(macOS 10.12, *)
+  public var frequency: Measurement<UnitFrequency> {
+    let frequency = SoapySDRDevice_getFrequency(device.impl, direction.rawValue, index)
+    return Measurement(value: frequency, unit: .hertz)
+  }
+  
+  /// Get the baseband filter width of the chain
+  @available(macOS 10.12, *)
+  public var bandwidth: Measurement<UnitFrequency> {
+    let bandwidth = SoapySDRDevice_getBandwidth(device.impl, direction.rawValue, index)
+    return Measurement(value: bandwidth, unit: .hertz)
+  }
+  
+  /// Get the frequency of a tunable element in the chain.
+  @available(macOS 10.12, *)
+  func getFrequencyComponent(name: String) -> Measurement<UnitFrequency> {
+    let frequency = SoapySDRDevice_getFrequencyComponent(device.impl, direction.rawValue, index, name)
+    return Measurement(value: frequency, unit: .hertz)
+  }
+  
+  @available(macOS 10.12, *)
+  func setFrequencyComponent(name: String, frequency: Measurement<UnitFrequency>) throws {
+    var args = SoapySDRKwargs()
+    try cTry { SoapySDRDevice_setFrequencyComponent(device.impl, direction.rawValue, index, name, frequency.converted(to: .hertz).value, &args) }
+  }
+  
+  // MARK: Antenna API
+  
+  /// Get a list of available antennas to select on a given chain.
+  public var antennas: [String] {
+    var length: Int = 0
+    let pointer = SoapySDRDevice_listAntennas(device.impl, direction.rawValue, index, &length)
+    let buffer = UnsafeBufferPointer(start: pointer, count: length)
+    return  buffer.compactMap{ $0 }.map { String(cString: $0) }
+  }
+  
+  /// Get the selected antenna on a chain.
+  public var antennaName: String { String(cString: SoapySDRDevice_getAntenna(device.impl, direction.rawValue, index)) }
+  
+  /// Set the selected antenna on a chain.
+  public func setAntenna(name: String) throws {
+    try cTry { SoapySDRDevice_setAntenna(device.impl, direction.rawValue, index, name) }
+  }
+  
+    
+}
+
+

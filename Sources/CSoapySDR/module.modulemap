@@ -1,0 +1,5 @@
+module CSoapySDR [system] {
+    header "soapysdr.h"
+    link "SoapySDR"
+    export *
+}
