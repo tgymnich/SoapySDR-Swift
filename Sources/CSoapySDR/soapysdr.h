@@ -9,5 +9,6 @@
 #define Header_h
 
 #include <SoapySDR/Device.h>
+#include <SoapySDR/Modules.h>
 
 #endif /* Header_h */
