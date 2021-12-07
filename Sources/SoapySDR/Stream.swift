@@ -20,9 +20,11 @@ public class Stream {
   let device: Device
   public let direction: Direction
   public var MTU: Int { SoapySDRDevice_getStreamMTU(device.impl, impl) }
-  /// Get a number of channels given the streaming direction.
-  private var numberOfChannels: Int { SoapySDRDevice_getNumChannels(impl, direction.rawValue) }
-  public var channels: [Channel] { (0..<numberOfChannels).map { Channel(device: device, direction: direction, index: $0) } }
+  public var channels: LazyMapSequence<LazySequence<(Range<Int>)>.Elements, Channel> {
+    let numberOfChannels = SoapySDRDevice_getNumChannels(impl, direction.rawValue)
+    let channels = (0..<numberOfChannels).lazy.map { Channel(device: self.device, direction: self.direction, index: $0) }
+    return channels
+  }
   
   
   /// Initialize a stream given a list of channels and stream arguments.

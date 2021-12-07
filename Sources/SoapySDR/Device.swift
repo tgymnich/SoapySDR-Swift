@@ -9,16 +9,12 @@ import Foundation
 @_implementationOnly import CSoapySDR
 
 public class Device {
-  public static var availableDevices: [Device] {
-    var devices: [Device] = []
+  public static var availableDevices: LazyMapSequence<LazySequence<(Range<Int>)>.Elements, Device> {
     var kwargs = SoapySDRKwargs()
-    var length: Int = 0
-    let args = SoapySDRDevice_enumerate(&kwargs, &length)
-    let buffer = UnsafeBufferPointer(start: args, count: length)
-    var iterator = buffer.makeIterator()
-    while var next = iterator.next() {
-      devices.append(Device(kwargs: &next))
-    }
+    var length = 0
+    let pointer = SoapySDRDevice_enumerate(&kwargs, &length)
+    let buffer = UnsafeMutableBufferPointer(start: pointer, count: length)
+    let devices = (0..<buffer.count).lazy.map { Device(kwargs: &buffer[$0]) }
     return devices
   }
   
@@ -152,7 +148,7 @@ public class Device {
   }
   
   /// Get the clock source of the device
-  public var clockSourc: String { String(cString: SoapySDRDevice_getClockSource(impl)) }
+  public var clockSource: String { String(cString: SoapySDRDevice_getClockSource(impl)) }
   
   deinit {
     SoapySDRDevice_unmake(impl)
