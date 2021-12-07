@@ -14,7 +14,7 @@ public struct Channel {
   public let index: Int
     
   /// Get the mapping configuration string.
-  public var frontendMapping: String { String(cString: SoapySDRDevice_getFrontendMapping(device.impl, direction.rawValue)) }
+  public var frontendMapping: String? { String(cString: SoapySDRDevice_getFrontendMapping(device.impl, direction.rawValue)).nonEmpty }
   
   /// Get channel info given the streaming direction
   public var info: [String: String] { Kwargs(SoapySDRDevice_getChannelInfo(device.impl, direction.rawValue, index)).toDictionary() }

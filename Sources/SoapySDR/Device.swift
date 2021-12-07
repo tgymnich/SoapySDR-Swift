@@ -25,10 +25,10 @@ public class Device {
   
   /// A key that uniquely identifies the device driver.
   /// This key identifies the underlying implementation. Several variants of a product may share a driver.
-  public var driverKey: String { String(cString: CSoapySDR.SoapySDRDevice_getDriverKey(impl)) }
+  public var driverKey: String { String(cString: SoapySDRDevice_getDriverKey(impl)!) }
   /// A key that uniquely identifies the hardware.
   /// This key should be meaningful to the user to optimize for the underlying hardware.
-  public var hardwareKey: String { String(cString: CSoapySDR.SoapySDRDevice_getHardwareKey(impl)) }
+  public var hardwareKey: String { String(cString: SoapySDRDevice_getHardwareKey(impl)!) }
   /// Query a dictionary of available device information.
   /// This dictionary can any number of values like vendor name, product name, revisions, serials...
   /// This information can be displayed to the user to help identify the instantiated device.
@@ -42,9 +42,9 @@ public class Device {
   
   /// Set the frontend mapping of available DSP units to RF frontends.
   /// This mapping controls channel mapping and channel availability.
-  public func setFrontendMapping(direction: Direction, mapping: String) {
-    _ = mapping.utf8CString.withUnsafeBufferPointer {
-      SoapySDRDevice_setFrontendMapping(impl, direction.rawValue, $0.baseAddress!)
+  public func setFrontendMapping(direction: Direction, mapping: String) throws {
+    try mapping.utf8CString.withUnsafeBufferPointer { ptr in
+      try cTry { SoapySDRDevice_setFrontendMapping(impl, direction.rawValue, ptr.baseAddress!) }
     }
   }
 
@@ -148,7 +148,7 @@ public class Device {
   }
   
   /// Get the clock source of the device
-  public var clockSource: String { String(cString: SoapySDRDevice_getClockSource(impl)) }
+  public var clockSource: String? { String(cString: SoapySDRDevice_getClockSource(impl)).nonEmpty }
   
   deinit {
     SoapySDRDevice_unmake(impl)

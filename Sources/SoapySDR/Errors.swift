@@ -59,6 +59,6 @@ public enum SDRError: RawRepresentable, LocalizedError {
   }
   
   public var errorDescription: String? {
-    return String(cString: CSoapySDR.SoapySDR_errToStr(rawValue))
+    return String(cString: CSoapySDR.SoapySDR_errToStr(rawValue)).nonEmpty
   }
 }

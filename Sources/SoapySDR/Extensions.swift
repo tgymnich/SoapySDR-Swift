@@ -122,3 +122,9 @@ extension Array {
         return result!
     }
 }
+
+extension String {
+  var nonEmpty: String? {
+    return isEmpty ? nil : self
+  }
+}

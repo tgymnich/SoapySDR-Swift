@@ -67,7 +67,8 @@ public class Stream {
     try cTry { SoapySDRDevice_deactivateStream(device.impl, impl, flags, timeNs) }
   }
   
-  /// Read elements from a stream for reception. This is a multi-channel call, and buffs should be an array of void *, where each pointer will be filled with data from a different channel.
+  /// Read elements from a stream for reception.
+  /// This is a multi-channel call, and buffs should be an array of void *, where each pointer will be filled with data from a different channel.
   public func readStream(buffers: inout [Data], timeout: Measurement<UnitDuration>) throws -> Int {
     assert(buffers.count == channels.count)
     var timeNs: Int64 = 0
@@ -84,7 +85,8 @@ public class Stream {
     }
   }
   
-  /// Write elements to a stream for transmission. This is a multi-channel call, and buffs should be an array of void *, where each pointer will be filled with data for a different channel.
+  /// Write elements to a stream for transmission.
+  /// This is a multi-channel call, and buffs should be an array of void *, where each pointer will be filled with data for a different channel.
   public func writeStream(buffers: [Data], timeout: Measurement<UnitDuration>) throws -> Int {
     assert(buffers.count == channels.count)
     let timeNs: Int64 = 0
@@ -102,7 +104,8 @@ public class Stream {
     }
   }
   
-  /// Readback status information about a stream. This call is typically used on a transmit stream to report time errors, underflows, and burst completion.
+  /// Readback status information about a stream.
+  /// This call is typically used on a transmit stream to report time errors, underflows, and burst completion.
   public func readStreamStatus(channelMask: Int, timeout: Int) throws {
     var flags: Int32 = 0
     var channelMask = channelMask
@@ -201,8 +204,8 @@ public class Stream {
   }
   
   /// Read an arbitrary setting on the device.
-  public func readSetting(key: String) -> String {
-    return String(cString: SoapySDRDevice_readSetting(device.impl, key))
+  public func readSetting(key: String) -> String? {
+    return String(cString: SoapySDRDevice_readSetting(device.impl, key)).nonEmpty
   }
   
   

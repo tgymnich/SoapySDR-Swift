@@ -9,11 +9,11 @@ import Foundation
 import Logging
 @_implementationOnly import CSoapySDR
 
-public var logger = Logger(label: "SoapySDR",
+private var logger = Logger(label: "SoapySDR",
                     factory: StreamLogHandler.standardError)
 
-
-func enableLogging(logLevel: SoapySDRLogLevel) {
+public func enableLogging(logger lg: Logger) {
+  logger = lg
   SoapySDR_setLogLevel(CSoapySDR.SoapySDRLogLevel(SoapySDRLogLevel.SOAPY_SDR_SSI.rawValue))
   
   SoapySDR_registerLogHandler { logLevel, message in

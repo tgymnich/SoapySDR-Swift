@@ -12,7 +12,7 @@ import Foundation
 public enum Modules {
   
   /// Query the root installation path
-  public static var installationPath: String { String(cString: CSoapySDR.SoapySDR_getRootPath()) }
+  public static var installationPath: String { String(cString: CSoapySDR.SoapySDR_getRootPath()!) }
 
   /// The list of paths automatically searched by loadModules().
   public static var searchPaths: [String] {
@@ -58,8 +58,8 @@ public enum Modules {
     SoapySDR_unloadModules()
   }
   
-  public static func getModuleVersion(path: String) -> String {
-    return String(cString: SoapySDR_getModuleVersion(path))
+  public static func getModuleVersion(path: String) -> String? {
+    return String(cString: SoapySDR_getModuleVersion(path)).nonEmpty
   }
 }
 
