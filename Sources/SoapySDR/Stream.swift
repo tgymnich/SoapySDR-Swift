@@ -119,7 +119,7 @@ public class Stream {
   /// How many direct access buffers can the stream provide?
   /// This is the number of times the user can call acquire() on a stream without making subsequent calls to release().
   /// A return value of 0 means that direct access is not supported.
-  private var getNumDirectAccessBuffers: Int { SoapySDRDevice_getNumDirectAccessBuffers(device.impl, impl) }
+  private var getNumberOfDirectAccessBuffers: Int { SoapySDRDevice_getNumDirectAccessBuffers(device.impl, impl) }
   
   private func getDirectAccessBufferAddress(handle: Int) throws {
     // try cTry { SoapySDRDevice_getDirectAccessBufferAddrs(device.impl, impl, handle, buffs) }
