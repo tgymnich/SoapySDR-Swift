@@ -80,13 +80,13 @@ public struct Channel {
   // MARK: Channel Settings API
   
   /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
-  public func writeChannelSetting(channel: Int, key: String, value: String) throws {
-    try cTry { SoapySDRDevice_writeChannelSetting(device.impl, direction.rawValue, channel, key, value) }
+  public func writeChannelSetting(key: String, value: String) throws {
+    try cTry { SoapySDRDevice_writeChannelSetting(device.impl, direction.rawValue, index, key, value) }
   }
   
   /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
-  public func readChannelSetting(channel: Int, key: String) -> String {
-    return String(cString: SoapySDRDevice_readChannelSetting(device.impl, direction.rawValue, channel, key))
+  public func readChannelSetting(key: String) -> String? {
+    return String(cString: SoapySDRDevice_readChannelSetting(device.impl, direction.rawValue, index, key)).nonEmpty
   }
   
   
