@@ -81,7 +81,7 @@ public struct Channel {
   
   /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
   public func writeChannelSetting(key: String, value: String) throws {
-    try cTry { SoapySDRDevice_writeChannelSetting(device.impl, direction.rawValue, index, key, value) }
+    try checkReturnCode { SoapySDRDevice_writeChannelSetting(device.impl, direction.rawValue, index, key, value) }
   }
   
   /// Write an arbitrary channel setting on the device. The interpretation is up the implementation.
@@ -123,7 +123,7 @@ public struct Channel {
   /// Set the center frequency of the chain. - For RX, this specifies the down-conversion frequency. - For TX, this specifies the up-conversion frequency.
   public func setFrequency(frequency: Measurement<UnitFrequency>) throws {
     var args = SoapySDRKwargs()
-    try cTry { SoapySDRDevice_setFrequency(device.impl, direction.rawValue, index, frequency.converted(to: .hertz).value, &args) }
+    try checkReturnCode { SoapySDRDevice_setFrequency(device.impl, direction.rawValue, index, frequency.converted(to: .hertz).value, &args) }
   }
     
   /// Get the range of overall frequency values.
@@ -200,7 +200,7 @@ public struct Channel {
   public func setFrequencyComponent(name: String, frequency: Measurement<UnitFrequency>) throws {
     var args = SoapySDRKwargs()
     let frequency = frequency.converted(to: .hertz).value
-    try cTry { SoapySDRDevice_setFrequencyComponent(device.impl, direction.rawValue, index, name, frequency, &args) }
+    try checkReturnCode { SoapySDRDevice_setFrequencyComponent(device.impl, direction.rawValue, index, name, frequency, &args) }
   }
   
   
@@ -258,7 +258,7 @@ public struct Channel {
   
   /// Set the selected antenna on a chain.
   public func setAntennaName(name: String) throws {
-    try cTry { SoapySDRDevice_setAntenna(device.impl, direction.rawValue, index, name) }
+    try checkReturnCode { SoapySDRDevice_setAntenna(device.impl, direction.rawValue, index, name) }
   }
   
     

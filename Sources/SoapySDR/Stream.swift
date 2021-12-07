@@ -56,7 +56,7 @@ public class Stream {
     let flags: Int32 = 0
     let timeNs: Int64 = 0
     let numElements = 0
-    try cTry { SoapySDRDevice_activateStream(device.impl, impl, flags, timeNs, numElements) }
+    try checkReturnCode { SoapySDRDevice_activateStream(device.impl, impl, flags, timeNs, numElements) }
   }
   
   /// Deactivate a stream. Call deactivate when not using using read/write().
@@ -64,7 +64,7 @@ public class Stream {
   public func deactivateStream() throws {
     let flags: Int32 = 0
     let timeNs: Int64 = 0
-    try cTry { SoapySDRDevice_deactivateStream(device.impl, impl, flags, timeNs) }
+    try checkReturnCode { SoapySDRDevice_deactivateStream(device.impl, impl, flags, timeNs) }
   }
   
   /// Read elements from a stream for reception.
@@ -110,7 +110,7 @@ public class Stream {
     var flags: Int32 = 0
     var channelMask = channelMask
     var timeNs: Int64 = 0
-    try cTry { SoapySDRDevice_readStreamStatus(device.impl, impl, &channelMask, &flags, &timeNs, timeout) }
+    try checkReturnCode { SoapySDRDevice_readStreamStatus(device.impl, impl, &channelMask, &flags, &timeNs, timeout) }
   }
   
   
@@ -200,7 +200,7 @@ public class Stream {
   
   /// Write an arbitrary setting on the device. The interpretation is up the implementation.
   public func writeSetting(key: String, value: String) throws {
-    try cTry { SoapySDRDevice_writeSetting(device.impl, key, value) }
+    try checkReturnCode { SoapySDRDevice_writeSetting(device.impl, key, value) }
   }
   
   /// Read an arbitrary setting on the device.

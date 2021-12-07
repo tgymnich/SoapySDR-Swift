@@ -62,7 +62,3 @@ public enum Modules {
     return String(cString: SoapySDR_getModuleVersion(path)).nonEmpty
   }
 }
-
-public struct ModuleError: Error, LocalizedError {
-  public var errorDescription: String
-}

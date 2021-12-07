@@ -44,7 +44,7 @@ public class Device {
   /// This mapping controls channel mapping and channel availability.
   public func setFrontendMapping(direction: Direction, mapping: String) throws {
     try mapping.utf8CString.withUnsafeBufferPointer { ptr in
-      try cTry { SoapySDRDevice_setFrontendMapping(impl, direction.rawValue, ptr.baseAddress!) }
+      try checkReturnCode { SoapySDRDevice_setFrontendMapping(impl, direction.rawValue, ptr.baseAddress!) }
     }
   }
 
@@ -61,7 +61,7 @@ public class Device {
   
   /// Set the time source on the device
   public func setTimeSource(source: String) throws {
-    try cTry { SoapySDRDevice_setTimeSource(impl, source) }
+    try checkReturnCode { SoapySDRDevice_setTimeSource(impl, source) }
   }
   
   /// Get the time source of the device
@@ -88,7 +88,7 @@ public class Device {
   
   /// Set the master clock rate of the device.
   public func setMasterClockRate(rate: Measurement<UnitFrequency>) throws {
-    try cTry { SoapySDRDevice_setMasterClockRate(impl, rate.converted(to: .hertz).value) }
+    try checkReturnCode { SoapySDRDevice_setMasterClockRate(impl, rate.converted(to: .hertz).value) }
   }
   
   /// Get the master clock rate of the device.
@@ -112,7 +112,7 @@ public class Device {
   
   /// Set the reference clock rate of the device.
   public func setReferenceClockRate(rate: Measurement<UnitFrequency>) throws {
-    try cTry { SoapySDRDevice_setReferenceClockRate(impl, rate.converted(to: .hertz).value) }
+    try checkReturnCode { SoapySDRDevice_setReferenceClockRate(impl, rate.converted(to: .hertz).value) }
   }
   
   /// Get the reference clock rate of the device.
@@ -144,7 +144,7 @@ public class Device {
   
   /// Set the clock source on the device
   public func setClockSource(source: String) throws {
-    try cTry { SoapySDRDevice_setClockSource(impl, source) }
+    try checkReturnCode { SoapySDRDevice_setClockSource(impl, source) }
   }
   
   /// Get the clock source of the device

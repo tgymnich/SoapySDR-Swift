@@ -62,3 +62,11 @@ public enum SDRError: RawRepresentable, LocalizedError {
     return String(cString: CSoapySDR.SoapySDR_errToStr(rawValue)).nonEmpty
   }
 }
+
+public struct ModuleError: Error, LocalizedError {
+  public var errorDescription: String
+}
+
+public struct DeviceError: Error, LocalizedError {
+  public var errorDescription: String
+}
