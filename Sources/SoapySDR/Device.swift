@@ -32,7 +32,7 @@ public class Device {
   /// Query a dictionary of available device information.
   /// This dictionary can any number of values like vendor name, product name, revisions, serials...
   /// This information can be displayed to the user to help identify the instantiated device.
-  private var hardwareInfo: SoapySDRKwargs { CSoapySDR.SoapySDRDevice_getHardwareInfo(impl) }
+  public var hardwareInfo: [String: String] { Kwargs(SoapySDRDevice_getHardwareInfo(impl)).toDictionary() }
   
   
   private init(kwargs: UnsafePointer<SoapySDRKwargs>) {

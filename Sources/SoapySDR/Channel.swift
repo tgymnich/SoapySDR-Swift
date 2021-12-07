@@ -17,7 +17,7 @@ public struct Channel {
   public var frontendMapping: String { String(cString: SoapySDRDevice_getFrontendMapping(device.impl, direction.rawValue)) }
   
   /// Get channel info given the streaming direction
-  private var info: SoapySDRKwargs { SoapySDRDevice_getChannelInfo(device.impl, direction.rawValue, index) }
+  public var info: [String: String] { Kwargs(SoapySDRDevice_getChannelInfo(device.impl, direction.rawValue, index)).toDictionary() }
   
   /// Find out if the specified channel is full or half duplex.
   public var fullDuplex: Bool { SoapySDRDevice_getFullDuplex(device.impl, direction.rawValue, index) }
