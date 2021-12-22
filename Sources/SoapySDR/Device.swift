@@ -20,8 +20,8 @@ public class Device {
   
   let impl: OpaquePointer
   
-  public lazy var rx: Stream? = nil
-  public lazy var tx: Stream? = nil
+//  public lazy var rx: Stream? = nil
+//  public lazy var tx: Stream? = nil
   
   /// A key that uniquely identifies the device driver.
   /// This key identifies the underlying implementation. Several variants of a product may share a driver.

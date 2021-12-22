@@ -12,6 +12,12 @@ public struct Channel {
   public let device: Device
   public let direction: Direction
   public let index: Int
+  
+  init(device: Device, direction: Direction, index: Int) {
+    self.device = device
+    self.direction = direction
+    self.index = index
+  }
     
   /// Get the mapping configuration string.
   public var frontendMapping: String? { String(cString: SoapySDRDevice_getFrontendMapping(device.impl, direction.rawValue)).nonEmpty }

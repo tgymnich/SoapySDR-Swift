@@ -15,7 +15,7 @@ public enum Direction: Int32 {
   case TX = 0
 }
 
-public class Stream {
+public class Stream<SampleType: StreamSample> {
   let impl: OpaquePointer
   let device: Device
   public let direction: Direction
@@ -31,16 +31,16 @@ public class Stream {
   /// The implementation may change switches or power-up components.
   /// All stream API calls should be usable with the new stream object after setupStream() is complete,
   /// regardless of the activity state.
-  private init?(device: Device, direction: Direction, format: String, channels: [Int], kwargs: UnsafePointer<SoapySDRKwargs>) {
-    guard let handle = SoapySDRDevice_setupStream(device.impl, direction.rawValue, format, channels, channels.count, kwargs) else { return nil }
+  private init(device: Device, direction: Direction, channels: [Int] = [], kwargs: inout SoapySDRKwargs) throws {
+    let handle = try checkError { SoapySDRDevice_setupStream(device.impl, direction.rawValue, SampleType.identifier, channels, channels.count, &kwargs) }!
     self.impl = handle
     self.direction = direction
     self.device = device
   }
   
-  convenience init?(device: Device, direction: Direction) {
+  public convenience init?(device: Device, direction: Direction) throws {
     var kwargs = SoapySDRKwargs()
-    self.init(device: device, direction: direction, format: "", channels: [], kwargs: &kwargs)
+    try self.init(device: device, direction: direction, channels: [], kwargs: &kwargs)
   }
   
   public subscript(index: Int) -> Channel {
@@ -69,7 +69,7 @@ public class Stream {
   
   /// Read elements from a stream for reception.
   /// This is a multi-channel call, and buffs should be an array of void *, where each pointer will be filled with data from a different channel.
-  public func readStream(buffers: inout [Data], timeout: Measurement<UnitDuration>) throws -> Int {
+  public func readStream(buffers: inout [[SampleType]], timeout: Measurement<UnitDuration>) throws -> Int {
     assert(buffers.count == channels.count)
     var timeNs: Int64 = 0
     var flags: Int32 = 0
@@ -87,7 +87,7 @@ public class Stream {
   
   /// Write elements to a stream for transmission.
   /// This is a multi-channel call, and buffs should be an array of void *, where each pointer will be filled with data for a different channel.
-  public func writeStream(buffers: [Data], timeout: Measurement<UnitDuration>) throws -> Int {
+  public func writeStream(buffers: [[SampleType]], timeout: Measurement<UnitDuration>) throws -> Int {
     assert(buffers.count == channels.count)
     let timeNs: Int64 = 0
     var flags: Int32 = 0

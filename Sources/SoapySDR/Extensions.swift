@@ -20,7 +20,7 @@ extension Measurement: Strideable {
 }
 
 extension Array {
-  mutating func withUnsafeMutableRawPointerArray<R>(_ body: (Array<UnsafeMutableRawPointer?>) throws -> R) rethrows -> R where Element == Data
+  mutating func withUnsafeMutableRawPointerArray<R>(_ body: (Array<UnsafeMutableRawPointer?>) throws -> R) rethrows -> R where Element: ContiguousCollection
     {
         var buffers = Array<UnsafeMutableRawPointer?>()
         var result: R?
@@ -46,7 +46,7 @@ extension Array {
 }
 
 extension Array {
-  mutating func withUnsafeMutableRawPointerArray<R>(_ body: (Array<UnsafeMutableRawPointer?>) -> R) -> R where Element == Data
+  mutating func withUnsafeMutableRawPointerArray<R>(_ body: (Array<UnsafeMutableRawPointer?>) -> R) -> R where Element: ContiguousCollection
     {
         var buffers = Array<UnsafeMutableRawPointer?>()
         var result: R?
@@ -72,7 +72,7 @@ extension Array {
 }
 
 extension Array {
-  func withUnsafeRawPointerArray<R>(_ body: (Array<UnsafeRawPointer?>) throws -> R) rethrows -> R where Element == Data
+  func withUnsafeRawPointerArray<R>(_ body: (Array<UnsafeRawPointer?>) throws -> R) rethrows -> R where Element: ContiguousCollection
     {
         var buffers = Array<UnsafeRawPointer?>()
         var result: R?
@@ -98,7 +98,7 @@ extension Array {
 }
 
 extension Array {
-  func withUnsafeRawPointerArray<R>(_ body: (Array<UnsafeRawPointer?>) -> R) -> R where Element == Data
+  func withUnsafeRawPointerArray<R>(_ body: (Array<UnsafeRawPointer?>) -> R) -> R where Element: ContiguousCollection
     {
         var buffers = Array<UnsafeRawPointer?>()
         var result: R?
@@ -128,3 +128,12 @@ extension String {
     return isEmpty ? nil : self
   }
 }
+
+
+protocol ContiguousCollection: RandomAccessCollection {
+  func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<Self.Element>) throws -> R) rethrows -> R?
+}
+
+extension Data: ContiguousCollection {}
+extension Array: ContiguousCollection {}
+
